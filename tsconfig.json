@@ -5,6 +5,10 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "strict": true,
-    "removeComments": false
-  }
+    "removeComments": false,
+    "declaration": true,
+    "outDir": "./lib"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "**/__tests__/*"]
 }

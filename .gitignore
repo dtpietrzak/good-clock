@@ -1,3 +1,6 @@
+/lib
+.babelrc
+
 # Logs
 logs
 *.log
