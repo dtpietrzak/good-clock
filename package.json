@@ -1,0 +1,32 @@
+{
+  "name": "good-clock",
+  "version": "1.0.0",
+  "description": "A better, more intuitive timer or clock for javascript",
+  "main": "clock.js",
+  "scripts": {
+    "test": "node test",
+    "type": "tsc --project ./",
+    "type:watch": "tsc --project ./ --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dtpietrzak/good-clock.git"
+  },
+  "keywords": [
+    "clock",
+    "setInterval",
+    "setTimeout",
+    "timer",
+    "wait"
+  ],
+  "author": "David Pietrzak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dtpietrzak/good-clock/issues"
+  },
+  "homepage": "https://github.com/dtpietrzak/good-clock#readme",
+  "devDependencies": {
+    "typescript": "^4.1.3",
+    "ts-node": "^9.1.1"
+  }
+}
