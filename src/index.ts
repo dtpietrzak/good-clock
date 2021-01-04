@@ -23,6 +23,10 @@ export class Clock {
   private _decrementing: boolean
   private _skipInitialCallback: boolean
   private _incrementBeforeInitialCallback: boolean
+  private _isRunning: boolean
+  private _isPaused: boolean
+  private _isStopped: boolean
+  private _isWaiting: boolean
 
   constructor() {
     this._value = 0
@@ -41,6 +45,10 @@ export class Clock {
     this._decrementing = false
     this._skipInitialCallback = false
     this._incrementBeforeInitialCallback = false
+    this._isRunning = false
+    this._isPaused = false
+    this._isStopped = true
+    this._isWaiting = false
   }
 
   // value
@@ -77,6 +85,13 @@ export class Clock {
     }
   }
   get endValue(): Value | undefined { return (this._endValue) }
+
+  get isRunning(): boolean { return (this._isRunning) }
+  get isPaused(): boolean { return (this._isPaused) }
+  get isStopped(): boolean { return (this._isStopped) }
+  get isWaiting(): boolean { return (this._isWaiting) }
+  get isAtStart(): boolean { return (this._value === this._startValue) }
+  get isAtEnd(): boolean { return (this._value === this._endValue) }
 
 
 
@@ -133,7 +148,7 @@ export class Clock {
       }
     }
   }
-  get incrementing(): boolean {
+  get isIncrementing(): boolean {
     if (this._decrementing) {
       return (false)
     } else if (this._incrementing) {
@@ -171,7 +186,7 @@ export class Clock {
       }
     }
   }
-  get decrementing(): boolean { return (this._decrementing) }
+  get isDecrementing(): boolean { return (this._decrementing) }
 
   // callbacks
   public setCallback = (callback: ClockTickCallback): boolean => {
@@ -236,7 +251,7 @@ export class Clock {
     // do nothing if both are false
 
     // this isn't intuitive until you go to use the function
-    if (this.incrementing && !(this._decrementing)) {
+    if (this._incrementing && !(this._decrementing)) {
       this.increment()
     } else if (this._decrementing) {
       this.decrement()
@@ -321,6 +336,10 @@ export class Clock {
   }
 
   private _runClock = () => {
+    this._isRunning = true
+    this._isPaused = false
+    this._isStopped = false
+
     this._setinterval = setTimeout(() => {
       this._runClock()
       // if callback is set, run it
@@ -329,6 +348,10 @@ export class Clock {
   }
 
   public stop = () => {
+    this._isRunning = false
+    this._isPaused = false
+    this._isStopped = true
+
     if (this._setinterval != null) {
       clearInterval(this._setinterval)
       this._setinterval = null
@@ -337,6 +360,10 @@ export class Clock {
   }
 
   public pause = () => {
+    this._isRunning = false
+    this._isPaused = true
+    this._isStopped = false
+
     if (this._setinterval != null) {
       clearInterval(this._setinterval)
       this._setinterval = null
@@ -351,9 +378,13 @@ export class Clock {
 
   // needs to test this special wait stuff !!!
   public wait = (callback: ClockTickCallback, waitTime: number) => {
+    this._isWaiting = true
+
     this._waitCallback = callback
 
     this._settimeout = setTimeout(() => {
+      this._isWaiting = false
+      
       if (callback) {
         this._waitCallback = null
         callback(this._value)

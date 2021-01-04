@@ -81,4 +81,41 @@ test('change the value interval, and pass the end value, but it still stops, and
   }, 5000)
 })
 
+test('checking clock state values [ isRunning, isPaused, etc... ]', async () => {
+  const clock = new Clock
 
+  expect(clock.isStopped).toBe(true)
+  expect(clock.isRunning).toBe(false)
+  expect(clock.isPaused).toBe(false)
+
+  clock.start(() => {
+  }, clock.seconds(1))
+
+  expect(clock.isStopped).toBe(false)
+  expect(clock.isRunning).toBe(true)
+  expect(clock.isPaused).toBe(false)
+
+  setTimeout(() => {
+    clock.pause()
+
+    expect(clock.isStopped).toBe(false)
+    expect(clock.isRunning).toBe(false)
+    expect(clock.isPaused).toBe(true)
+  }, 2000)
+
+  setTimeout(() => {
+    clock.resume()
+
+    expect(clock.isStopped).toBe(false)
+    expect(clock.isRunning).toBe(true)
+    expect(clock.isPaused).toBe(false)
+  }, 3000)
+
+  setTimeout(() => {
+    clock.stop()
+
+    expect(clock.isStopped).toBe(true)
+    expect(clock.isRunning).toBe(false)
+    expect(clock.isPaused).toBe(false)
+  }, 4000)
+})
