@@ -47,7 +47,7 @@ const clock = new Clock
 
 
 // // count to ten, each one second, but pause at 5 for 3 seconds
-// 
+
 // clock.start((value) => {
 //   console.log(value)
 //   if (value === 5) {
@@ -62,29 +62,8 @@ const clock = new Clock
 // })
 
 
-// // everyone loves poop jokes
-// clock.start((value) => {
-//   console.log("poop # times: "+value)
-
-//   if (value === 4) {
-//     console.log("am I done pooping?")
-//     clock.pause()
-
-//     clock.wait(() => {
-//       console.log("nope, hold on, there's more")
-//       clock.resume()
-//     }, clock.seconds(5))
-//   }
-  
-// }, clock.seconds(1), {
-//   endValue: 10,
-//   endCallback: () => {
-//     console.log("all done.\nthat's a lot of poop!\n")
-//   }
-// })
-
-
 // // easy decrementing
+
 // clock.start((value) => {
 //   console.log(value)
 // }, clock.seconds(0.5), {
@@ -94,6 +73,7 @@ const clock = new Clock
 
 
 // // change the value interval, and pass the end value, but it still stops
+
 // clock.start((value) => {
 //   console.log(value)
 // }, clock.seconds(0.5), {
@@ -103,7 +83,20 @@ const clock = new Clock
 // })
 
 
+// // change the value interval, and pass the end value, but it still stops this time it clamps to the end value when it hits it
+
+// clock.start((value) => {
+//   console.log(value)
+// }, clock.seconds(0.5), {
+//   decrementing: true,
+//   valueInterval: 3,
+//   endValue: -10,
+//   clampEndValue: true
+// })
+
+
 // // want a different start value?
+
 // clock.start((value) => {
 //   console.log(value)
 // }, clock.seconds(0.5), {
@@ -112,13 +105,16 @@ const clock = new Clock
 // })
 
 
-// // non-linear time intervals // NOT WORKING!
-// clock.start((value) => {
-//   console.log("value: "+value)
-//   console.log("time interval: "+clock.timeInterval)
-// }, (time_interval) => {
+// // change the callback mid-flight
 
-//   return (clock.seconds(1))
-// }, {
+// clock.start((value) => {
+//   console.log(value)
+// }, clock.seconds(1), {
 //   endValue: 10
 // })
+
+// clock.wait(() => {
+//   clock.setCallback((value) => {
+//     console.log("value: " + value)
+//   })
+// }, clock.seconds(5))

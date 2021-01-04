@@ -1,20 +1,22 @@
 export type Value = number
-export type ValueInterval = Value | ((last_interval: ValueInterval) => Value)
 export type Milliseconds = number
-export type TimeInterval = Milliseconds | ((last_interval: TimeInterval) => Milliseconds)
 export type ClockTickCallback = ((value: Value) => void | boolean) | null
+
+export type SetterOrUpdaterValue = (valOrUpdater: ((currVal: Value) => Value) | Value) => void
+export type SetterOrUpdaterMilliseconds = (valOrUpdater: ((currVal: Milliseconds) => Milliseconds) | Milliseconds) => void
+
 
 export class Clock {
   private _value: Value
   private _startValue: Value | undefined
   private _endValue: Value | undefined
-  private _endTime: Milliseconds | undefined
+  private _clampEndValue: boolean
+  private _valueInterval: Value
+  private _timeInterval: Milliseconds
   private _callback: ClockTickCallback
   private _startCallback: ClockTickCallback
   private _endCallback: ClockTickCallback
   private _waitCallback: ClockTickCallback
-  private _valueInterval: ValueInterval
-  private _timeInterval: TimeInterval
   private _setinterval: ReturnType<typeof setInterval> | null
   private _settimeout: ReturnType<typeof setTimeout> | null
   private _incrementing: boolean
@@ -26,6 +28,7 @@ export class Clock {
     this._value = 0
     this._startValue = undefined
     this._endValue = undefined
+    this._clampEndValue = false
     this._valueInterval = 1
     this._timeInterval = 1000
     this._callback = null
@@ -83,26 +86,16 @@ export class Clock {
 
 
   // value interval
-  public setValueInterval = (interval: ValueInterval): boolean => {
-    if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
-      console.log("Clock Error: Clock.setInterval() input must be a number or a setter function")
-      return (false)
-    }
-    this._valueInterval = interval
-    return (true)
+  public setValueInterval = (newValue: Value) => {
+    this._valueInterval = newValue
   }
-  get valueInterval(): ValueInterval { return (this._calcValueInterval(this._valueInterval)) }
+  get valueInterval(): Value { return (this._valueInterval) }
 
   // time interval
-  public setTimeInterval = (interval: TimeInterval): boolean => {
-    if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
-      console.log("Clock Error: Clock.setInterval() input must be a number or a setter function")
-      return (false)
-    }
-    this._timeInterval = interval
-    return (true)
+  public setTimeInterval = (newValue: Milliseconds) => {
+    this._timeInterval = newValue
   }
-  get timeInterval(): TimeInterval { return (this._calcTimeInterval(this._timeInterval)) }
+  get timeInterval(): Milliseconds { return (this._timeInterval) }
 
 
 
@@ -113,7 +106,7 @@ export class Clock {
 
 
   // increment
-  public increment = (interval?: ValueInterval): Value | boolean => {
+  public increment = (interval?: Value): Value | boolean => {
     if (interval) {
       if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
         console.log("Clock Error: Clock.increment() input must be a number or a setter function")
@@ -151,7 +144,7 @@ export class Clock {
   }
 
   // decrement
-  public decrement = (interval?: ValueInterval): Value | boolean => {
+  public decrement = (interval?: Value): Value | boolean => {
     if (interval) {
       if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
         console.log("Clock Error: Clock.decrement() input must be a number or a setter function")
@@ -209,23 +202,33 @@ export class Clock {
     }
   }
 
+
+
+
+
   // these intervals are off. last_interval keeps sending as a function
-  private _calcTimeInterval = (interval: TimeInterval): Milliseconds => {
+  private _calcTimeInterval = (interval: Milliseconds): Milliseconds => {
     if (typeof interval === 'number') {
       return interval
     } else {
-      return interval(this._timeInterval)
+      return this._calcTimeInterval(this._timeInterval)
     }
   }
 
   // these intervals are off. last_interval keeps sending as a function
-  private _calcValueInterval = (interval: ValueInterval): Value => {
+  private _calcValueInterval = (interval: Milliseconds): Value | Value => {
     if (typeof interval === 'number') {
       return interval
     } else {
-      return interval(this._valueInterval)
+      return this._calcValueInterval(this._valueInterval)
     }
   }
+
+
+
+
+
+
 
   private _incrementOrDecrement = () => {
     // increment if only increment option is set to true
@@ -242,22 +245,25 @@ export class Clock {
 
   private _runClockCallback = () => {
     if (typeof this._callback === 'function') {
-      // this if statement is for stopping the clock if the callback returns true
-      if (this._callback(this._value)) this.stop()
 
       if (this._endValue) {
         if (this._decrementing) {
           if (this._value <= this._endValue) {
             this.stop()
+            if (this._clampEndValue) this._value = this._endValue
             if (this._endCallback) this._endCallback(this._value)
           }
         } else {
           if (this._value >= this._endValue) {
             this.stop()
+            if (this._clampEndValue) this._value = this._endValue
             if (this._endCallback) this._endCallback(this._value)
           }
         }
       }
+
+      // this if statement is for stopping the clock if the callback returns true
+      if (this._callback(this._value)) this.stop()
     }
     // check if should, and if should then inc or dec
     this._incrementOrDecrement()
@@ -266,17 +272,18 @@ export class Clock {
   // this starts a repeating clock that calls the clock's callback or an optional callback argument passed to the function. if the internal callback and the optional callback arent set, the clock still increments, but nothing happens. if both are set, only the optional argument callback is called
   public start = (
     callback?: ClockTickCallback,
-    timeInterval?: TimeInterval,
+    timeInterval?: Milliseconds,
     options?: {
       incrementing?: boolean,
       decrementing?: boolean,
-      valueInterval?: ValueInterval,
+      valueInterval?: Value,
       skipInitialCallback?: boolean,
       incrementBeforeInitialCallback?: boolean,
       startValue?: Value,
       startCallback?: ClockTickCallback,
       endValue?: Value,
-      endCallback?: ClockTickCallback
+      clampEndValue?: boolean,
+      endCallback?: ClockTickCallback,
     }
   ) => {
     if (this._setinterval == null) {
@@ -292,6 +299,7 @@ export class Clock {
       if (options?.startValue) this._startValue = options.startValue
       if (options?.startCallback) this._startCallback = options.startCallback
       if (options?.endValue) this._endValue = options.endValue
+      if (options?.clampEndValue) this._clampEndValue = options.clampEndValue
       if (options?.endCallback) this._endCallback = options.endCallback
 
       if (this._startValue !== undefined) {
@@ -307,12 +315,17 @@ export class Clock {
       // if callback is set and it's not set to initially be skipped
       if (!(this._skipInitialCallback)) this._runClockCallback()
 
-      // start the clock & set the callback on it
-      this._setinterval = setInterval(() => {
-        // if callback is set, run it
-        this._runClockCallback()
-      }, this._calcTimeInterval(this._timeInterval))
+      // start the clock
+      this._runClock()
     }
+  }
+
+  private _runClock = () => {
+    this._setinterval = setTimeout(() => {
+      this._runClock()
+      // if callback is set, run it
+      this._runClockCallback()
+    }, this._calcTimeInterval(this._timeInterval))
   }
 
   public stop = () => {
@@ -332,11 +345,7 @@ export class Clock {
 
   public resume = () => {
     if (this._setinterval == null) {
-      // start the clock & set the callback on it
-      this._setinterval = setInterval(() => {
-        // if callback is set, run it
-        this._runClockCallback()
-      }, this._calcTimeInterval(this._timeInterval))
+      this._runClock()
     }
   }
 
