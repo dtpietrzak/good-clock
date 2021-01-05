@@ -532,4 +532,5 @@ export class Clock {
   public hours = (hours: number): number => (hours * 60 * 60 * 1000)
 }
 
+module.exports = Clock
 export default Clock
