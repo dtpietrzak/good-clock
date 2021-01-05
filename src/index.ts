@@ -2,10 +2,6 @@ export type Value = number
 export type Milliseconds = number
 export type ClockTickCallback = ((value: Value) => void | boolean) | null
 
-export type SetterOrUpdaterValue = (valOrUpdater: ((currVal: Value) => Value) | Value) => void
-export type SetterOrUpdaterMilliseconds = (valOrUpdater: ((currVal: Milliseconds) => Milliseconds) | Milliseconds) => void
-
-
 export class Clock {
   private _value: Value
   private _startValue: Value | undefined
@@ -27,6 +23,15 @@ export class Clock {
   private _isPaused: boolean
   private _isStopped: boolean
   private _isWaiting: boolean
+  private _willStopAfterNextCallback: boolean
+  private _willPauseAfterNextCallback: boolean
+
+  // drift correction stuff
+  private _epochStarted: number
+  private _expected: number
+  private _drifted: number
+  private _hadDriftError: boolean
+  private _driftCorrectionOn: boolean
 
   constructor() {
     this._value = 0
@@ -49,201 +54,21 @@ export class Clock {
     this._isPaused = false
     this._isStopped = true
     this._isWaiting = false
-  }
+    this._willStopAfterNextCallback = false
+    this._willPauseAfterNextCallback = false
 
-  // value
-  public setValue = (value: Value): boolean => {
-    if (typeof value !== 'number') {
-      console.log("Clock Error: Clock.setValue() input must be a number")
-      return (false)
-    }
-    this._value = value
-    return (true)
-  }
-  get value(): Value { return (this._value) }
-
-  // start value
-  public setStartValue = (startValue: Value): boolean => {
-    if (typeof startValue !== 'number') {
-      console.log("Clock Error: Clock.setStartValue() input must be a number")
-      return (false)
-    } else {
-      this._startValue = startValue
-      return (true)
-    }
-  }
-  get startValue(): Value | undefined { return (this._startValue) }
-
-  // end value
-  public setEndValue = (endValue: Value): boolean => {
-    if (typeof endValue !== 'number') {
-      console.log("Clock Error: Clock.setEndValue() input must be a number")
-      return (false)
-    } else {
-      this._endValue = endValue
-      return (true)
-    }
-  }
-  get endValue(): Value | undefined { return (this._endValue) }
-
-  get isRunning(): boolean { return (this._isRunning) }
-  get isPaused(): boolean { return (this._isPaused) }
-  get isStopped(): boolean { return (this._isStopped) }
-  get isWaiting(): boolean { return (this._isWaiting) }
-  get isAtStart(): boolean { return (this._value === this._startValue) }
-  get isAtEnd(): boolean { return (this._value === this._endValue) }
-
-
-
-
-
-
-
-
-  // value interval
-  public setValueInterval = (newValue: Value) => {
-    this._valueInterval = newValue
-  }
-  get valueInterval(): Value { return (this._valueInterval) }
-
-  // time interval
-  public setTimeInterval = (newValue: Milliseconds) => {
-    this._timeInterval = newValue
-  }
-  get timeInterval(): Milliseconds { return (this._timeInterval) }
-
-
-
-
-
-
-
-
-
-  // increment
-  public increment = (interval?: Value): Value | boolean => {
-    if (interval) {
-      if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
-        console.log("Clock Error: Clock.increment() input must be a number or a setter function")
-        return (false)
-      }
-      this._value = this._value + this._calcValueInterval(interval)
-      return (this._value)
-    } else {
-      this._value = this._value + this._calcValueInterval(this._valueInterval)
-      return (this._value)
-    }
-  }
-  public setIncrementing = (incrementing?: boolean): boolean => {
-    if (incrementing === undefined) {
-      this._incrementing = !this._incrementing
-      return (true)
-    } else {
-      if (typeof incrementing === 'boolean') {
-        this._incrementing = incrementing
-        return (true)
-      } else {
-        console.log("Clock Error: Clock.setIncrementing() input must be a boolean")
-        return (false)
-      }
-    }
-  }
-  get isIncrementing(): boolean {
-    if (this._decrementing) {
-      return (false)
-    } else if (this._incrementing) {
-      return (true)
-    } else {
-      return (false)
-    }
-  }
-
-  // decrement
-  public decrement = (interval?: Value): Value | boolean => {
-    if (interval) {
-      if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
-        console.log("Clock Error: Clock.decrement() input must be a number or a setter function")
-        return (false)
-      }
-      this._value = this._value - this._calcValueInterval(interval)
-      return (this._value)
-    } else {
-      this._value = this._value - this._calcValueInterval(this._valueInterval)
-      return (this._value)
-    }
-  }
-  public setDecrementing = (decrementing?: boolean): boolean => {
-    if (decrementing === undefined) {
-      this._decrementing = !this._decrementing
-      return (true)
-    } else {
-      if (typeof decrementing === 'boolean') {
-        this._decrementing = decrementing
-        return (true)
-      } else {
-        console.log("Clock Error: Clock.setDecrementing() input must be a boolean")
-        return (false)
-      }
-    }
-  }
-  get isDecrementing(): boolean { return (this._decrementing) }
-
-  // callbacks
-  public setCallback = (callback: ClockTickCallback): boolean => {
-    if (typeof callback !== 'function') {
-      console.log("Clock Error: Clock.setCallback() input must be a function")
-      return (false)
-    } else {
-      this._callback = callback
-      return (true)
-    }
-  }
-  public setStartCallback = (startCallback: ClockTickCallback): boolean => {
-    if (typeof startCallback !== 'function') {
-      console.log("Clock Error: Clock.setStartCallback() input must be a function")
-      return (false)
-    } else {
-      this._startCallback = startCallback
-      return (true)
-    }
-  }
-  public setEndCallback = (endCallback: ClockTickCallback): boolean => {
-    if (typeof endCallback !== 'function') {
-      console.log("Clock Error: Clock.setEndCallback() input must be a function")
-      return (false)
-    } else {
-      this._endCallback = endCallback
-      return (true)
-    }
+    // drift correction stuff
+    this._epochStarted = 0
+    this._expected = 0
+    this._drifted = 0
+    this._hadDriftError = false
+    this._driftCorrectionOn = false
   }
 
 
-
-
-
-  // these intervals are off. last_interval keeps sending as a function
-  private _calcTimeInterval = (interval: Milliseconds): Milliseconds => {
-    if (typeof interval === 'number') {
-      return interval
-    } else {
-      return this._calcTimeInterval(this._timeInterval)
-    }
-  }
-
-  // these intervals are off. last_interval keeps sending as a function
-  private _calcValueInterval = (interval: Milliseconds): Value | Value => {
-    if (typeof interval === 'number') {
-      return interval
-    } else {
-      return this._calcValueInterval(this._valueInterval)
-    }
-  }
-
-
-
-
-
-
+  // private stuff  -  private stuff  -  private stuff
+  // private stuff  -  private stuff  -  private stuff
+  // private stuff  -  private stuff  -  private stuff
 
   private _incrementOrDecrement = () => {
     // increment if only increment option is set to true
@@ -277,11 +102,266 @@ export class Clock {
         }
       }
 
+      // stop if set it to end after next callback
+      if (this._willStopAfterNextCallback) {
+        this.stop()
+        this._willStopAfterNextCallback = false
+      }
+
+      // pause if set it to end after next callback
+      if (this._willPauseAfterNextCallback) {
+        this.pause()
+        this._willPauseAfterNextCallback = false
+      }
+
       // this if statement is for stopping the clock if the callback returns true
       if (this._callback(this._value)) this.stop()
     }
     // check if should, and if should then inc or dec
     this._incrementOrDecrement()
+  }
+
+  // these intervals are off. last_interval keeps sending as a function
+  private _calcTimeInterval = (interval: Milliseconds): Milliseconds => {
+    if (typeof interval === 'number') {
+      return interval
+    } else {
+      return this._calcTimeInterval(this._timeInterval)
+    }
+  }
+
+  // these intervals are off. last_interval keeps sending as a function
+  private _calcValueInterval = (interval: Milliseconds): Value | Value => {
+    if (typeof interval === 'number') {
+      return interval
+    } else {
+      return this._calcValueInterval(this._valueInterval)
+    }
+  }
+
+  private _runClock = () => {
+    this._isRunning = true
+    this._isPaused = false
+    this._isStopped = false
+
+    this._setinterval = setTimeout(() => {
+      this._runClock()
+      // if callback is set, run it
+      this._runClockCallback()
+    }, this._calcTimeInterval(this._timeInterval) - this._driftCorrection())
+  }
+
+  // drift correction
+  private _driftCorrection = () => {
+    if (!(this._hadDriftError) && this._driftCorrectionOn) { // this is how we ignore drift correction
+      if (this._expected !== 0) {
+        // handles all ticks after the first
+        // we know what the drift is for the last tick
+        // so we'll simply subtract the last drift value
+        this._drifted = (Date.now() - this._epochStarted) - this._expected
+        console.log('drift', this._drifted)
+        this._expected = this._expected + this._timeInterval
+        console.log('expected', this._expected)
+        console.log('actual', Date.now() - this._epochStarted + this._timeInterval)
+
+        // if the drift messed up
+        // we'll set all future ticks to ignore drift correction
+        if (
+          this._drifted < 0 ||
+          this._drifted > this._timeInterval ||
+          this._drifted > 50
+        ) {
+          this._hadDriftError = true
+          return 0
+        }
+        return this._drifted
+      } else {
+        // handles the first tick
+        // we dont know what the drift is yet,
+        this._epochStarted = Date.now()
+        this._expected = this._timeInterval
+        return 0
+      }
+    }
+    return 0
+  }
+
+  // public getters  -  public getters  -  public getters
+  // public getters  -  public getters  -  public getters
+  // public getters  -  public getters  -  public getters
+
+  get value(): Value { return (this._value) }
+  get startValue(): Value | undefined { return (this._startValue) }
+  get endValue(): Value | undefined { return (this._endValue) }
+  get isRunning(): boolean { return (this._isRunning) }
+  get isPaused(): boolean { return (this._isPaused) }
+  get isStopped(): boolean { return (this._isStopped) }
+  get isWaiting(): boolean { return (this._isWaiting) }
+  get isAtStart(): boolean { return (this._value === this._startValue) }
+  get isAtEnd(): boolean { return (this._value === this._endValue) }
+  get willStopAfterNextCallback(): boolean { return (this._willStopAfterNextCallback) }
+  get willPauseAfterNextCallback(): boolean { return (this._willPauseAfterNextCallback) }
+  get valueInterval(): Value { return (this._valueInterval) }
+  get timeInterval(): Milliseconds { return (this._timeInterval) }
+  get isDecrementing(): boolean { return (this._decrementing) }
+  get isIncrementing(): boolean {
+    if (this._decrementing) {
+      return (false)
+    } else if (this._incrementing) {
+      return (true)
+    } else {
+      return (false)
+    }
+  }
+
+  // public setters  -  public setters  -  public setters
+  // public setters  -  public setters  -  public setters
+  // public setters  -  public setters  -  public setters
+
+  // value
+  public setValue = (value: Value): boolean => {
+    if (typeof value !== 'number') {
+      console.log("Clock Error: Clock.setValue() input must be a number")
+      return (false)
+    }
+    this._value = value
+    return (true)
+  }
+
+  // start value
+  public setStartValue = (startValue: Value): boolean => {
+    if (typeof startValue !== 'number') {
+      console.log("Clock Error: Clock.setStartValue() input must be a number")
+      return (false)
+    } else {
+      this._startValue = startValue
+      return (true)
+    }
+  }
+
+  // end value
+  public setEndValue = (endValue: Value): boolean => {
+    if (typeof endValue !== 'number') {
+      console.log("Clock Error: Clock.setEndValue() input must be a number")
+      return (false)
+    } else {
+      this._endValue = endValue
+      return (true)
+    }
+  }
+
+  // value interval
+  public setValueInterval = (newValue: Value) => {
+    this._valueInterval = newValue
+  }
+
+  // time interval
+  public setTimeInterval = (newValue: Milliseconds) => {
+    this._timeInterval = newValue
+    if (newValue < 99) this._driftCorrectionOn = false
+  }
+
+  // set it to incrementing state,
+  // if an option isnt passed, it sets it to increment
+  public setIncrementing = (incrementing?: boolean) => {
+    if (incrementing === undefined) {
+      this._incrementing = true
+      this._decrementing = false
+      return (true)
+    } else {
+      if (typeof incrementing === 'boolean') {
+        this._incrementing = incrementing
+        this._decrementing = !incrementing
+        return (true)
+      } else {
+        console.log("Clock Error: Clock.setIncrementing() input must be a boolean or undefined")
+        return (false)
+      }
+    }
+  }
+
+  // set it to decrementing state,
+  // if an option isnt passed, it sets it to decrement
+  public setDecrementing = (decrementing?: boolean): boolean => {
+    if (decrementing === undefined) {
+      this._incrementing = false
+      this._decrementing = true
+      return (true)
+    } else {
+      if (typeof decrementing === 'boolean') {
+        this._incrementing = !decrementing
+        this._decrementing = decrementing
+        return (true)
+      } else {
+        console.log("Clock Error: Clock.setDecrementing() input must be a boolean or undefined")
+        return (false)
+      }
+    }
+  }
+
+  // callbacks
+  public setCallback = (callback: ClockTickCallback): boolean => {
+    if (typeof callback !== 'function') {
+      console.log("Clock Error: Clock.setCallback() input must be a function")
+      return (false)
+    } else {
+      this._callback = callback
+      return (true)
+    }
+  }
+
+  public setStartCallback = (startCallback: ClockTickCallback): boolean => {
+    if (typeof startCallback !== 'function') {
+      console.log("Clock Error: Clock.setStartCallback() input must be a function")
+      return (false)
+    } else {
+      this._startCallback = startCallback
+      return (true)
+    }
+  }
+
+  public setEndCallback = (endCallback: ClockTickCallback): boolean => {
+    if (typeof endCallback !== 'function') {
+      console.log("Clock Error: Clock.setEndCallback() input must be a function")
+      return (false)
+    } else {
+      this._endCallback = endCallback
+      return (true)
+    }
+  }
+
+  // public actions  -  public actions  -  public actions
+  // public actions  -  public actions  -  public actions
+  // public actions  -  public actions  -  public actions
+
+  // increment
+  public increment = (interval?: Value): Value | boolean => {
+    if (interval) {
+      if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
+        console.log("Clock Error: Clock.increment() input must be a number or a setter function")
+        return (false)
+      }
+      this._value = this._value + this._calcValueInterval(interval)
+      return (this._value)
+    } else {
+      this._value = this._value + this._calcValueInterval(this._valueInterval)
+      return (this._value)
+    }
+  }
+
+  // decrement
+  public decrement = (interval?: Value): Value | boolean => {
+    if (interval) {
+      if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
+        console.log("Clock Error: Clock.decrement() input must be a number or a setter function")
+        return (false)
+      }
+      this._value = this._value - this._calcValueInterval(interval)
+      return (this._value)
+    } else {
+      this._value = this._value - this._calcValueInterval(this._valueInterval)
+      return (this._value)
+    }
   }
 
   // this starts a repeating clock that calls the clock's callback or an optional callback argument passed to the function. if the internal callback and the optional callback arent set, the clock still increments, but nothing happens. if both are set, only the optional argument callback is called
@@ -299,6 +379,7 @@ export class Clock {
       endValue?: Value,
       clampEndValue?: boolean,
       endCallback?: ClockTickCallback,
+      driftCorrectionOn?: boolean,
     }
   ) => {
     if (this._setinterval == null) {
@@ -316,6 +397,9 @@ export class Clock {
       if (options?.endValue) this._endValue = options.endValue
       if (options?.clampEndValue) this._clampEndValue = options.clampEndValue
       if (options?.endCallback) this._endCallback = options.endCallback
+      if (options?.driftCorrectionOn) this._driftCorrectionOn = options.driftCorrectionOn
+
+      if (this._timeInterval < 99) this._driftCorrectionOn = false
 
       if (this._startValue !== undefined) {
         this._value = this._startValue
@@ -330,23 +414,16 @@ export class Clock {
       // if callback is set and it's not set to initially be skipped
       if (!(this._skipInitialCallback)) this._runClockCallback()
 
+      // reset expected epoch and drift
+      this._drifted = 0
+      this._expected = 0
+
       // start the clock
       this._runClock()
     }
   }
 
-  private _runClock = () => {
-    this._isRunning = true
-    this._isPaused = false
-    this._isStopped = false
-
-    this._setinterval = setTimeout(() => {
-      this._runClock()
-      // if callback is set, run it
-      this._runClockCallback()
-    }, this._calcTimeInterval(this._timeInterval))
-  }
-
+  // stop, just like a CD player. it stops playback and restarts the clock
   public stop = () => {
     this._isRunning = false
     this._isPaused = false
@@ -358,7 +435,11 @@ export class Clock {
     }
     if (this._startValue) this._value = this._startValue
   }
+  public stopAfterNextCallback = () => {
+    this._willStopAfterNextCallback = true
+  }
 
+  // pause, just like a CD player. it stops playback, but doesn't restart the clock
   public pause = () => {
     this._isRunning = false
     this._isPaused = true
@@ -369,14 +450,21 @@ export class Clock {
       this._setinterval = null
     }
   }
+  public pauseAfterNextCallback = () => {
+    this._willPauseAfterNextCallback = true
+  }
 
+  // resume, just like a CD player. resumes playback after it was paused
   public resume = () => {
     if (this._setinterval == null) {
+      // reset expected epoch and drift
+      this._drifted = 0
+      this._expected = 0
       this._runClock()
     }
   }
 
-  // needs to test this special wait stuff !!!
+  // wait functions
   public wait = (callback: ClockTickCallback, waitTime: number) => {
     this._isWaiting = true
 
@@ -384,7 +472,7 @@ export class Clock {
 
     this._settimeout = setTimeout(() => {
       this._isWaiting = false
-      
+
       if (callback) {
         this._waitCallback = null
         callback(this._value)
@@ -392,6 +480,7 @@ export class Clock {
     }, waitTime)
   }
 
+  // cancel wait with callback
   public cancelWaitWithCallback = () => {
     if (this._settimeout != null) {
       clearTimeout(this._settimeout)
@@ -403,6 +492,7 @@ export class Clock {
     this._waitCallback = null
   }
 
+  // cancel wait with callback
   public cancelWaitWithoutCallback = () => {
     if (this._settimeout != null) {
       clearTimeout(this._settimeout)
@@ -411,7 +501,11 @@ export class Clock {
     }
   }
 
+  // public converters  -  public converters  -  public converters
+  // public converters  -  public converters  -  public converters
+  // public converters  -  public converters  -  public converters
 
+  // easy time conversions
   public seconds = (seconds: number): number => (seconds * 1000)
   public minutes = (minutes: number): number => (minutes * 60 * 1000)
   public hours = (hours: number): number => (hours * 60 * 60 * 1000)
