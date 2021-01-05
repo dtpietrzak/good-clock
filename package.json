@@ -1,7 +1,7 @@
 {
   "name": "good-clock",
   "version": "1.1.0",
-  "description": "A better, more intuitive timer or clock for javascript",
+  "description": "An intuitive timer / clock for javascript + typescript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {

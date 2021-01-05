@@ -1,0 +1,5 @@
+1.1.0 -- 2020-01-04
+* Added optional drift correction and exports.module syntax
+
+1.0.0 -- 2020-01-03
+* Initial release
