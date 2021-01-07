@@ -224,35 +224,40 @@ export class Clock {
   // public setters  -  public setters  -  public setters
 
   // callback
-  public setCallback = (callback: ClockTickCallback): boolean => {
+  public setCallback = (callback: ClockTickCallback) => {
     if (typeof callback !== 'function') {
-      console.log("Clock Error: Clock.setCallback() input must be a function")
-      return (false)
+      console.warn("Clock Error: Clock.setCallback() input must be a function")
     } else {
       this._callback = callback
-      return (true)
     }
   }
 
   // value
-  public setValue = (value: Value): boolean => {
+  public setValue = (value: Value) => {
     if (typeof value !== 'number') {
-      console.log("Clock Error: Clock.setValue() input must be a number")
-      return (false)
+      console.warn("Clock Error: Clock.setValue() input must be a number")
+    } else {
+      this._value = value
     }
-    this._value = value
-    return (true)
   }
 
   // time interval
   public setTimeInterval = (newValue: Milliseconds) => {
-    this._timeInterval = newValue
-    if (newValue < 99) this._driftCorrectionOn = false
+    if (typeof newValue !== 'number') {
+      console.warn("Clock Error: Clock.setTimeInterval() input must be a number")
+    } else {
+      this._timeInterval = newValue
+      if (newValue < 99) this._driftCorrectionOn = false
+    }
   }
 
   // value interval
   public setValueInterval = (newValue: Value) => {
-    this._valueInterval = newValue
+    if (typeof newValue !== 'number') {
+      console.warn("Clock Error: Clock.setValueInterval() input must be a number")
+    } else {
+      this._valueInterval = newValue
+    }
   }
 
   // set it to incrementing state,
@@ -261,94 +266,96 @@ export class Clock {
     if (incrementing === undefined) {
       this._incrementing = true
       this._decrementing = false
-      return (true)
     } else {
       if (typeof incrementing === 'boolean') {
         this._incrementing = incrementing
         this._decrementing = !incrementing
-        return (true)
       } else {
-        console.log("Clock Error: Clock.setIncrementing() input must be a boolean or undefined")
-        return (false)
+        console.warn("Clock Error: Clock.setIncrementing() input must be a boolean or undefined")
       }
     }
   }
 
   // set it to decrementing state,
   // if an option isnt passed, it sets it to decrement
-  public setDecrementing = (decrementing?: boolean): boolean => {
+  public setDecrementing = (decrementing?: boolean) => {
     if (decrementing === undefined) {
       this._incrementing = false
       this._decrementing = true
-      return (true)
     } else {
       if (typeof decrementing === 'boolean') {
         this._incrementing = !decrementing
         this._decrementing = decrementing
-        return (true)
       } else {
-        console.log("Clock Error: Clock.setDecrementing() input must be a boolean or undefined")
-        return (false)
+        console.warn("Clock Error: Clock.setDecrementing() input must be a boolean or undefined")
       }
     }
   }
 
   // start value
-  public setStartValue = (startValue: Value): boolean => {
+  public setStartValue = (startValue: Value) => {
     if (typeof startValue !== 'number') {
-      console.log("Clock Error: Clock.setStartValue() input must be a number")
-      return (false)
+      console.warn("Clock Error: Clock.setStartValue() input must be a number")
     } else {
       this._startValue = startValue
-      return (true)
     }
   }
 
-  public setStartCallback = (startCallback: ClockTickCallback): boolean => {
+  public setStartCallback = (startCallback: ClockTickCallback) => {
     if (typeof startCallback !== 'function') {
-      console.log("Clock Error: Clock.setStartCallback() input must be a function")
-      return (false)
+      console.warn("Clock Error: Clock.setStartCallback() input must be a function")
     } else {
       this._startCallback = startCallback
-      return (true)
     }
   }
 
   // end value
-  public setEndValue = (endValue: Value): boolean => {
+  public setEndValue = (endValue: Value) => {
     if (typeof endValue !== 'number') {
-      console.log("Clock Error: Clock.setEndValue() input must be a number")
-      return (false)
+      console.warn("Clock Error: Clock.setEndValue() input must be a number")
     } else {
       this._endValue = endValue
-      return (true)
     }
   }
 
-  public setEndCallback = (endCallback: ClockTickCallback): boolean => {
+  public setEndCallback = (endCallback: ClockTickCallback) => {
     if (typeof endCallback !== 'function') {
-      console.log("Clock Error: Clock.setEndCallback() input must be a function")
-      return (false)
+      console.warn("Clock Error: Clock.setEndCallback() input must be a function")
     } else {
       this._endCallback = endCallback
-      return (true)
     }
   }
 
   public setClampEndValue = (isClamped: boolean) => {
-    this._clampEndValue = isClamped
+    if (typeof isClamped !== 'boolean') {
+      console.warn("Clock Error: Clock.setClampEndValue() input must be a boolean")
+    } else {
+      this._clampEndValue = isClamped
+    }
   }
 
   public setSkipInitialCallback = (skipInitialCallback: boolean) => {
-    this._skipInitialCallback = skipInitialCallback
+    if (typeof skipInitialCallback !== 'boolean') {
+      console.warn("Clock Error: Clock.setSkipInitialCallback() input must be a boolean")
+    } else {
+      this._skipInitialCallback = skipInitialCallback
+    }
   }
 
   public setIncrementBeforeInitialCallback = (incrementBeforeInitialCallback: boolean) => {
-    this._incrementBeforeInitialCallback = incrementBeforeInitialCallback
+    if (typeof incrementBeforeInitialCallback !== 'boolean') {
+      console.warn("Clock Error: Clock.setIncrementBeforeInitialCallback() input must be a boolean")
+    } else {
+      this._incrementBeforeInitialCallback = incrementBeforeInitialCallback
+    }
   }
 
   public setDriftCorrection = (driftCorrection: boolean) => {
-    this._driftCorrectionOn = driftCorrection
+    if (typeof driftCorrection !== 'boolean') {
+      console.warn("Clock Error: Clock.setDriftCorrection() input must be a boolean")
+    } else {
+      this._driftCorrectionOn = driftCorrection
+    }
   }
 
   // public actions  -  public actions  -  public actions
@@ -424,6 +431,8 @@ export class Clock {
 
       if (this._startValue !== undefined) {
         this._value = this._startValue
+      } else {
+        this._startValue = this._value
       }
 
       // if the optional incrementOnInitialCallback is set, do it
