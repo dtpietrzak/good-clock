@@ -1,3 +1,6 @@
+1.1.1 -- 2020-01-07
+* Changed console.logs to console.warns when methods are called with the wrong type
+
 1.1.0 -- 2020-01-04
 * Added optional drift correction and exports.module syntax
 

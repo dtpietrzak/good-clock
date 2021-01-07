@@ -365,8 +365,8 @@ export class Clock {
   // increment
   public increment = (interval?: Value): Value | boolean => {
     if (interval) {
-      if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
-        console.warn("Clock Error: Clock.increment() input must be a number or a setter function")
+      if ((typeof interval !== 'number')) {
+        console.warn("Clock Error: Clock.increment() input must be a number")
         return (false)
       }
       this._value = this._value + this._calcValueInterval(interval)
@@ -380,8 +380,8 @@ export class Clock {
   // decrement
   public decrement = (interval?: Value): Value | boolean => {
     if (interval) {
-      if ((typeof interval !== 'number') && (typeof interval !== 'function')) {
-        console.warn("Clock Error: Clock.decrement() input must be a number or a setter function")
+      if ((typeof interval !== 'number')) {
+        console.warn("Clock Error: Clock.decrement() input must be a number")
         return (false)
       }
       this._value = this._value - this._calcValueInterval(interval)
