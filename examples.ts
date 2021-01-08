@@ -107,12 +107,12 @@ const clock = new Clock
 
 // // change the valueInterval mid-flight
 
-clock.start((value) => {
-  clock.setValueInterval(value + 1)
-  console.log(value)
-}, clock.seconds(1), {
-  endValue: 20,
-})
+// clock.start((value) => {
+//   clock.setValueInterval(value + 1)
+//   console.log(value)
+// }, clock.seconds(1), {
+//   endValue: 20,
+// })
 
 
 // // change the callback mid-flight
