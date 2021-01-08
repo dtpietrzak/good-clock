@@ -11,6 +11,8 @@ An **intuitive timer / clock** for **javascript** + **typescript**
  - [Getters](#getters)
  - [Setters](#setters)
  - [Actions](#actions)
+ - [Helpers](#helpers)
+ - [Examples](#examples)
 
 ## How To Use
 
@@ -62,20 +64,38 @@ Everything works using both methods, this will do the same thing
 
 ## Actions
 
-coming soon...
+| code | description | options |
+|--|--|--|
+| `clock.increment()` | Increments the clock's value by one valueInterval or by the optional argument | **number:** the amount to increment the clock's value. (optional) |
+| `clock.decrement()` | Decrements the clock's value by one valueInterval or by the optional argument | **number:** the amount to decrement the clock's value. (optional) |
+| `clock.start()` | Starts the clock, optionally sets it up. | **function:** see clock.setCallback() below. **number:** see clock.setTimeInterval() below. **ClockOptions:** see ClockOptions below. |
+| `clock.stop()` | Stops the clock and resets it to startValue | none |
+| `clock.stopAfterNextCallback()` | Stops the clock after the next clock tick and resets it to startValue. | none |
+| `clock.pause()` | Pauses the clock. Does NOT change the clock's value and `clock.resume()` can then be used to restart the clock as if it had never stopped. | none |
+| `clock.pauseAfterNextCallback()` | Pauses the clock after the next clock tick. Does NOT change the clock's value and `clock.resume()` can then be used to restart the clock as if it had never stopped. | none |
+| `clock.resume()` | Restarts the clock without changing it's value. Remember that `clock.stop()` resets the value to the clock's startValue. So if you use `clock.stop()` to stop the clock and then resume to restart the clock, the clock WILL start at the clock's startValue. Use `clock.pause()` to stop a clock without reseting it's value to it's startValue. | none |
+| `clock.wait()` | Calls a function after a determined wait time. | **function:** The function to be called after the wait time. **number:** The time to wait before calling the function. |
+| `clock.cancelWaitWithCallback()` | Call this when the clock is waiting from `clock.wait()` to cancel the wait and immediately call its function. | none |
+| `clock.cancelWaitWithoutCallback()` | Call this when the clock is waiting from `clock.wait()` to cancel the wait and NOT call its function. | none |
 
 ## Setters
 
 | code | description |
 |--|--|
-| `clock.setCallback(function)` | Sets the callback of the clock. This is a function that's called on every clock tick. Returns with whether or not it was set. |
+| `clock.setCallback(function(value))` | Sets the callback of the clock. This is a function that's called on every clock tick. The function receives the clock's `value` as an argument. |
 | `clock.setValue(number)` | Sets the value of the clock. This can be any number. The value will be incremented or decremented every clock tick based on the clock's valueInterval. |
 | `clock.setTimeInterval(number)` | Sets the time interval of the clock in milliseconds. The clock is based on javascript's setTimeout function, so the time between clock callbacks is NOT perfectly precise. This time can vary quite a bit, sometimes 50ms or so. Each lag (or inaccurately triggered interval) adds on top of the last. So a clock with it's timeInterval set to 1000, (1 second) after 120 seconds (2 minutes) will be more like 120.5 or 121 seconds later. If you want the clock to sync with real world seconds / minutes / etc... see the `clock.setDriftCorrection()` method. |
 | `clock.setValueInterval(number)` | Sets the amount to increase or decrease the clock's value on every clock tick. Whether it adds or subtracts is based on whether the clock is set to increment or decrement. |
 | `clock.setIncrementing(boolean or undefined)` | If called without an argument or with `true` the clock will be set to increment. If called with `false` the clock will be set to decrement. |
 | `clock.setDecrementing(boolean or undefined)` | If called without an argument or with `true` the clock will be set to decrement. If called with `false` the clock will be set to increment. |
 | `clock.setStartValue(number)` | Sets the clock's start value. When calling `clock.start()` the clock will start at this value. If startValue is not set and `clock.start()` is called the clock will start with whatever clock.value is set as, and startValue will be automatically set to the clock.value. |
-| more coming soon... | check the source code and examples for more info |
+| `clock.setStartCallback(function)` | Sets a function that is called when `clock.start()` is called. |
+| `clock.setEndValue(number)` | Set's the endValue of the clock. If the value is equal to this endValue, the clock will automatically stop. If `clock.isEndValueClamped` is `true` then the clock will also stop if it is greater than (when incrementing) or less than (when decrementing) this endValue. |
+| `clock.setEndCallback(function)` | Sets a function that is called when the endValue causes the clock to stop. |
+| `clock.setClampEndValue(number)` | Sets the value that the clock will automatically stop at (endValue). If `clock.isEndValueClamped` is `true` then the clock will also stop if it is greater than (when incrementing) or less than (when decrementing) the endValue. |
+| `clock.setSkipInitialCallback(boolean)` | Sets whether or not the clock's first tick is when `clock.start()` is called, or one timeInterval after `clock.start()` is called. |
+| `clock.setIncrementBeforeInitialCallback(boolean)` | Sets whether or not the clock's value will increment / decrement before the first clock tick. |
+| `clock.setDriftCorrection(boolean)` | The clock is based on javascript's setTimeout function, so the time between clock callbacks is NOT perfectly precise. This time can vary quite a bit, sometimes 50ms or so. Each lag (or inaccurately triggered interval) adds on top of the last. So a clock with it's timeInterval set to 1000, (1 second) after 120 seconds (2 minutes) will be more like 120.5 or 121 seconds later. If you want the clock to sync with real world seconds / minutes / etc... set this to true. Note that the clock will still not fire at precisely the right time, this only ensures that the clock's error will not accumulate. If the clock's drift is greater than 50ms, driftCorrection is automatically disabled. If the clock's timeInterval is set to less than 50ms, driftCorrection is automatically disabled. |
 
 ## Getters
 
@@ -100,3 +120,87 @@ coming soon...
 | `clock.isAtEnd` | `true` if the clock's value is equal to the clock's endValue. `false` if not. | boolean |
 | `clock.willStopAfterNextCallback` | `true` if the clock is set to stop after the next callback after `clock.stop()` is called. `false` if not. | boolean |
 | `clock.willPauseAfterNextCallback` | `true` if the clock is set to pause after the next callback after `clock.pause()` is called. `false` if not. | boolean |
+| `
+
+## Helpers
+
+| code | description |
+|--|--|
+| `clock.seconds(number)` | Returns milliseconds. (input * 1000) |
+| `clock.minutes(number)` | Returns milliseconds. (input * 60 * 1000) |
+| `clock.hours(number)` | Returns milliseconds. (input * 60 * 60 * 1000) |
+
+## Examples
+
+Simple count to ten and stop, incrementing by one each second.
+
+    clock.start((value) => {
+	    console.log(value)
+	}, clock.seconds(1), {
+		endValue: 10,
+	})
+
+Count to ten, each one second, but pause at 5 for 3 seconds
+
+    clock.start((value) => {
+	    console.log(value)
+	    if (value === 5) {
+		    clock.pause()
+		    clock.wait(() => {
+			    clock.resume()
+			}, clock.seconds(3))
+		}
+	}, clock.seconds(1), {
+		endValue: 10,
+	})
+
+Easy decrementing
+
+    clock.start((value) => {
+	    console.log(value)
+	}, clock.seconds(1), {
+		decrementing: true,
+		endValue: -10,
+	})
+
+Start at 15 and count to 20
+
+    clock.start((value) => {
+	    console.log(value)
+	}, clock.seconds(1), {
+		startValue: 15,
+		endValue: 20,
+	})
+
+Pass the endValue, but since it's clamped it stops at the endValue
+
+    clock.start((value) => {
+	    console.log(value)
+	}, clock.seconds(1), {
+		valueInterval: 3,
+		endValue: 10,
+		clampEndValue: true,
+	})
+
+Change the value interval mid-flight
+
+    clock.start((value) => {
+	    clock.setValueInterval(value + 1)
+	    console.log(value)
+	}, clock.seconds(1), {
+		endValue: 20,
+	})
+
+Change the callback function mid-flight ( after 5 second wait )
+
+    clock.start((value) => {
+		console.log(value)
+	}, clock.seconds(1), {
+		endValue: 10,
+	})
+	
+	clock.wait(() => {
+		clock.setCallback((value) => {
+			console.log("value: " + value)
+		})
+	}, clock.seconds(5))
