@@ -8,19 +8,19 @@ An **intuitive timer / clock** for **javascript** + **typescript**
 ## Quick Links
 
  - [How To Use](#how-to-use)
- - [Getters](#getters)
- - [Setters](#setters)
  - [Actions](#actions)
+ - [Setters](#setters)
+ - [Getters](#getters)
  - [Helpers](#helpers)
  - [Examples](#examples)
+ - [Defaults](#defaults)
 
 ## How To Use
 
 Setup
 
-    import Clock from 'good-clock'
-               - or -
-    const Clock = require('good-clock')
+    import Clock from 'good-clock'       // for import method
+    const Clock = require('good-clock')  // for require method
 
 Create a clock object - *( or multiple if you want )*
 
@@ -78,6 +78,24 @@ Everything works using both methods, this will do the same thing
 | `clock.cancelWaitWithCallback()` | Call this when the clock is waiting from `clock.wait()` to cancel the wait and immediately call its function. | none |
 | `clock.cancelWaitWithoutCallback()` | Call this when the clock is waiting from `clock.wait()` to cancel the wait and NOT call its function. | none |
 
+**ClockOptions**: type: object ( all properties are optional )
+	
+
+    {
+	    valueInterval: number,
+	    incrementing: boolean,
+	    decrementing: boolean,
+	    startValue: number,
+	    startCallback: function,
+	    endValue: number,
+	    endCallback: function,
+	    clampEndValue: boolean,
+	    skipInitialCallback: boolean,
+	    incrementBeforeInitialCallback: boolean,
+	    driftCorrectionOn: boolean
+	}
+
+For more details on **ClockOptions** see the corresponding setters below.
 ## Setters
 
 | code | description |
@@ -204,3 +222,26 @@ Change the callback function mid-flight ( after 5 second wait )
 			console.log("value: " + value)
 		})
 	}, clock.seconds(5))
+
+## Defaults
+
+    callback = null
+    value = 0
+    timeInterval = 1000
+    valueInterval = 1
+    incrementing = true
+    decrementing = false
+    startValue = undefined
+    startCallback = null
+    endValue = undefined
+    endCallback = null
+    clampEndValue = false
+    skipInitialCallback = false
+    incrementBeforeInitialCallback = false
+    isRunning = false
+    isPaused = false
+    isStopped = true
+    waitCallback = null
+    isWaiting = false
+    willStopAfterNextCallback = false
+    willPauseAfterNextCallback = false
