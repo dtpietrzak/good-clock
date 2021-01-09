@@ -69,6 +69,9 @@ Each clock object contains one "clock" and one "wait". The clock acts like javas
 
 The most important difference to realize is that good-clock is object oriented! You have to create a new clock object for every different clock you want to use. Calling clock.start(function) will NOT create a new clock, it only starts the clock its acting on. Each good-clock instance only has ONE wait as well! For example, **if you want two timers you DO NOT DO THIS**:
 
+    // BAD TWO CLOCK IMPLEMENTATION
+    // DO NOT DO THIS!!!
+    
     const clock = new Clock
     
     clock.start(() => {
@@ -81,6 +84,9 @@ The most important difference to realize is that good-clock is object oriented! 
 
 **Instead do this**:
 
+    // GOOD TWO CLOCK IMPLEMENTATION
+    // DO THIS
+    
     const clockOne = new Clock
     const clockTwo = new Clock
     
