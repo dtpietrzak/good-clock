@@ -7,7 +7,8 @@ An **intuitive timer / clock** for **javascript** + **typescript**
 
 ## Quick Links
 
- - [How To Use](#how-to-use)
+ - [Getting Started](#getting-started)
+ - [Clock Details](#clock-details)
  - [Actions](#actions)
  - [Setters](#setters)
  - [Getters](#getters)
@@ -15,7 +16,7 @@ An **intuitive timer / clock** for **javascript** + **typescript**
  - [Examples](#examples)
  - [Defaults](#defaults)
 
-## How To Use
+## Getting Started
 
 Setup
 
@@ -60,6 +61,37 @@ Everything works using both methods, this will do the same thing
     clock.setEndValue(20)
     clock.setEndCallback(() => { console.log("all done!") })
     clock.start()
+
+
+## Clock Details
+
+Each clock object contains one "clock" and one "wait". The clock acts like javascript's setInterval and the wait acts like javascript's setTimeout. Why use them? They have some awesome additions that make them more intuitive and quicker to implement. The clock has a built in value state which increments or decrements on every clock tick and is automagically passed to the clock's callback function. Unlike javascript's setInterval, you can change the clock's callback function entirely and the next tick will call the new callback.
+
+The most important difference to realize is that good-clock is object oriented! You have to create a new clock object for every different clock you want to use. Calling clock.start(function) will NOT create a new clock, it only starts the clock its acting on. Each good-clock instance only has ONE wait as well! For example, **if you want two timers you DO NOT DO THIS**:
+
+    const clock = new Clock
+    
+    clock.start(() => {
+	    someFunction()
+    })
+    
+    clock.start((value) => {
+	    someOtherFunction(value)
+    })
+
+**Instead do this**:
+
+    const clockOne = new Clock
+    const clockTwo = new Clock
+    
+    clockOne.start(() => {
+	    someFunction()
+    })
+    
+    clockTwo.start((value) => {
+	    someOtherFunction(value)
+    })
+
 
 
 ## Actions
