@@ -119,3 +119,93 @@ test('checking clock state values [ isRunning, isPaused, etc... ]', async () => 
     expect(clock.isPaused).toBe(false)
   }, 4000)
 })
+
+
+test('Skip intial callback works', async () => {
+  const clock = new Clock
+
+  clock.start((value) => {
+    clock.setValue(5)
+  }, clock.seconds(1), {
+    skipInitialCallback: true,
+    endValue: 2
+  })
+
+  expect(clock.value).toBe(0)
+
+  clock.wait(() => {
+    expect(clock.value).toBe(5)
+  }, clock.seconds(2))
+})
+
+
+test('NOT Skip intial callback works', async () => {
+  const clock = new Clock
+
+  clock.start((value) => {
+    clock.setValue(5)
+  }, clock.seconds(1), {
+    skipInitialCallback: false,
+    endValue: 2
+  })
+
+  expect(clock.value).toBe(6)
+
+  clock.wait(() => {
+    expect(clock.value).toBe(6)
+  }, clock.seconds(2))
+})
+
+
+test('Increment before initial callback set to true', async () => {
+  const clock = new Clock
+  let first = true
+
+  clock.start((value) => {
+    if (first) {
+      expect(clock.value).toBe(1)
+    } else {
+      expect(clock.value).toBe(6)
+    }
+    first = false
+    clock.setValue(5)
+    expect(clock.value).toBe(5)
+  }, clock.seconds(1), {
+    skipInitialCallback: false,
+    incrementBeforeInitialCallback: true,
+    endValue: 2
+  })
+  
+  expect(clock.value).toBe(6)
+  
+  clock.wait(() => {
+    expect(clock.value).toBe(6)
+  }, clock.seconds(2))
+})
+
+
+test('Increment before callbacks set to true', async () => {
+  const clock = new Clock
+  let first = true
+
+  clock.start((value) => {
+    if (first) {
+      expect(clock.value).toBe(1)
+    } else {
+      expect(clock.value).toBe(6)
+    }
+    first = false
+    clock.setValue(5)
+    expect(clock.value).toBe(5)
+  }, clock.seconds(1), {
+    skipInitialCallback: false,
+    incrementBeforeCallbacks: true,
+    endValue: 2
+  })
+  
+  expect(clock.value).toBe(5)
+  
+  clock.wait(() => {
+    expect(clock.value).toBe(5)
+  }, clock.seconds(2))
+})
