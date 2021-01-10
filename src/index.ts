@@ -425,7 +425,7 @@ export class Clock {
       endCallback?: ClockTickCallback,
       clampEndValue?: boolean,
       skipInitialCallback?: boolean,
-      incrementBeforeCallbacks: boolean,
+      incrementBeforeCallbacks?: boolean,
       incrementBeforeInitialCallback?: boolean,
       driftCorrectionOn?: boolean,
     }
