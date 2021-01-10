@@ -15,6 +15,7 @@ An **intuitive timer / clock** for **javascript** + **typescript**
  - [Helpers](#helpers)
  - [Examples](#examples)
  - [Defaults](#defaults)
+ - [Improvements](#improvements)
 
 ## Getting Started
 
@@ -129,6 +130,7 @@ The most important difference to realize is that good-clock is object oriented! 
 	    endCallback: function,
 	    clampEndValue: boolean,
 	    skipInitialCallback: boolean,
+        incrementBeforeCallbacks: boolean,
 	    incrementBeforeInitialCallback: boolean,
 	    driftCorrectionOn: boolean
 	}
@@ -150,6 +152,7 @@ For more details on **ClockOptions** see the corresponding setters below.
 | `clock.setEndCallback(function)` | Sets a function that is called when the endValue causes the clock to stop. |
 | `clock.setClampEndValue(number)` | Sets the value that the clock will automatically stop at (endValue). If `clock.isEndValueClamped` is `true` then the clock will also stop if it is greater than (when incrementing) or less than (when decrementing) the endValue. |
 | `clock.setSkipInitialCallback(boolean)` | Sets whether or not the clock's first tick is when `clock.start()` is called, or one timeInterval after `clock.start()` is called. |
+| `clock.setIncrementBeforeCallbacks(boolean)` | Sets whether or not the clock's value will increment / decrement before or after each callback. |
 | `clock.setIncrementBeforeInitialCallback(boolean)` | Sets whether or not the clock's value will increment / decrement before the first clock tick. |
 | `clock.setDriftCorrection(boolean)` | The clock is based on javascript's setTimeout function, so the time between clock callbacks is NOT perfectly precise. This time can vary quite a bit, sometimes 50ms or so. Each lag (or inaccurately triggered interval) adds on top of the last. So a clock with it's timeInterval set to 1000, (1 second) after 120 seconds (2 minutes) will be more like 120.5 or 121 seconds later. If you want the clock to sync with real world seconds / minutes / etc... set this to true. Note that the clock will still not fire at precisely the right time, this only ensures that the clock's error will not accumulate. If the clock's drift is greater than 50ms, driftCorrection is automatically disabled. If the clock's timeInterval is set to less than 50ms, driftCorrection is automatically disabled. |
 
@@ -165,7 +168,8 @@ For more details on **ClockOptions** see the corresponding setters below.
 | `clock.startValue` | The value the clock will start at when ran with `clock.start()`. It is `undefined` until either directly set or the first time `clock.start()` is called. The first time `clock.start()` is called, it's startValue will be set to whatever the value was. (default = 1). Calling `clock.stop()` will set the clock's value back to this startValue. Calling `clock.start()` again, will start the clock at this startValue. | number |
 | `clock.endValue` | The clock will automatically stop once the clock's value equals this value. | number |
 | `clock.isEndValueClamped` | `true` if the clock is set to be clamped to the end value. `false` if not. (default = false) | boolean |
-| `clock.isSkippingInitialCallback` | `true` if the clock is set to skip the initial callback when `clock.start()` is called. `false` if not. (default = false) | number |
+| `clock.isSkippingInitialCallback` | `true` if the clock is set to skip the initial callback when `clock.start()` is called. `false` if not. (default = false) | boolean |
+| `clock.isIncrementingBeforeCallbacks` | `true` if the clock is set to increment / decrement before each callback instead of after. `false` if not. (default = false) | boolean |
 | `clock.isIncrementingBeforeInitialCallback` | `true` if the clock is set to increment before the initial callback. `false` if not. | boolean |
 | `clock.isDriftCorrectionOn` | `true` if drift correction is on. `false if not. (default = false) | boolean |
 | `clock.isRunning` | `true` if the clock is running. `false` if not. | boolean |
@@ -275,6 +279,7 @@ Change the callback function mid-flight ( after 5 second wait )
     endCallback = null
     clampEndValue = false
     skipInitialCallback = false
+    incrementBeforeCallbacks = false
     incrementBeforeInitialCallback = false
     isRunning = false
     isPaused = false
@@ -283,3 +288,8 @@ Change the callback function mid-flight ( after 5 second wait )
     isWaiting = false
     willStopAfterNextCallback = false
     willPauseAfterNextCallback = false
+
+
+## Improvements
+
+If you would like to contribute improvements please [create issues](https://github.com/dtpietrzak/good-clock/issues) or [create pull requests](https://github.com/dtpietrzak/good-clock/pulls) on the github page. 
