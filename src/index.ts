@@ -17,6 +17,7 @@ export class Clock {
   private _endCallback: ClockTickCallback
   private _clampEndValue: boolean
   private _skipInitialCallback: boolean
+  private _incrementBeforeCallbacks: boolean
   private _incrementBeforeInitialCallback: boolean
   private _isRunning: boolean
   private _isPaused: boolean
@@ -48,6 +49,7 @@ export class Clock {
     this._endCallback = null
     this._clampEndValue = false
     this._skipInitialCallback = false
+    this._incrementBeforeCallbacks = false
     this._incrementBeforeInitialCallback = false
     this._isRunning = false
     this._isPaused = false
@@ -86,6 +88,11 @@ export class Clock {
   private _runClockCallback = () => {
     if (typeof this._callback === 'function') {
 
+      if (this._incrementBeforeCallbacks === true) {
+        // check if should, and if should then inc or dec
+        this._incrementOrDecrement()
+      }
+
       if (this._endValue) {
         if (this._decrementing) {
           if (this._value <= this._endValue) {
@@ -117,8 +124,11 @@ export class Clock {
       // this if statement is for stopping the clock if the callback returns true
       if (this._callback(this._value)) this.stop()
     }
-    // check if should, and if should then inc or dec
-    this._incrementOrDecrement()
+
+    if (this._incrementBeforeCallbacks === false) {
+      // check if should, and if should then inc or dec
+      this._incrementOrDecrement()
+    }
   }
 
   // these intervals are off. last_interval keeps sending as a function
@@ -207,6 +217,7 @@ export class Clock {
   get endValue(): Value | undefined { return (this._endValue) }
   get isEndValueClamped(): boolean { return this._clampEndValue }
   get isSkippingInitialCallback(): boolean { return this._skipInitialCallback }
+  get isIncrementingBeforeCallbacks(): boolean { return this._incrementBeforeCallbacks }
   get isIncrementingBeforeInitialCallback(): boolean { return this._incrementBeforeInitialCallback }
   get isDriftCorrectionOn(): boolean { return this._driftCorrectionOn }
   get isRunning(): boolean { return (this._isRunning) }
@@ -342,6 +353,14 @@ export class Clock {
     }
   }
 
+  public setIncrementBeforeCallbacks = (incrementBeforeCallbacks: boolean) => {
+    if (typeof incrementBeforeCallbacks !== 'boolean') {
+      console.warn("Clock Error: Clock.setIncrementBeforeCallbacks() input must be a boolean")
+    } else {
+      this._incrementBeforeCallbacks = incrementBeforeCallbacks
+    }
+  }
+
   public setIncrementBeforeInitialCallback = (incrementBeforeInitialCallback: boolean) => {
     if (typeof incrementBeforeInitialCallback !== 'boolean') {
       console.warn("Clock Error: Clock.setIncrementBeforeInitialCallback() input must be a boolean")
@@ -406,6 +425,7 @@ export class Clock {
       endCallback?: ClockTickCallback,
       clampEndValue?: boolean,
       skipInitialCallback?: boolean,
+      incrementBeforeCallbacks: boolean,
       incrementBeforeInitialCallback?: boolean,
       driftCorrectionOn?: boolean,
     }
@@ -417,6 +437,8 @@ export class Clock {
       if (options?.decrementing) this._decrementing = options.decrementing
       if (options?.skipInitialCallback)
         this._skipInitialCallback = options.skipInitialCallback
+      if (options?.incrementBeforeCallbacks)
+        this._incrementBeforeCallbacks = options.incrementBeforeCallbacks
       if (options?.incrementBeforeInitialCallback)
         this._incrementBeforeInitialCallback = options.incrementBeforeInitialCallback
       if (options?.valueInterval) this._valueInterval = options.valueInterval
