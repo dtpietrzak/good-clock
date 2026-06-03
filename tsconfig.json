@@ -4,7 +4,7 @@
     "target": "es6",
     "module": "commonjs",
     "esModuleInterop": true,
-    "types": ["node"],
+    "types": ["node", "jest"],
     "strict": true,
     "removeComments": false,
     "declaration": true,

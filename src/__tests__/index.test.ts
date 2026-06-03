@@ -1,211 +1,223 @@
-import Clock from '..'
+import Clock from "..";
 
-test('Set Value to 500 and Get it', async () => {
-  const clock = new Clock
-  clock.setValue(500)
+test.only("Set Value to 500 and Get it", async () => {
+  const clock = new Clock();
+  clock.setValue(500);
 
   expect(clock.value).toBe(500);
-})
+});
 
-test('3 seconds after the default clock starts, value should be 3', async () => {
-  const clock = new Clock
-  clock.start()
+test("3 seconds after the default clock starts, value should be 3", async () => {
+  const clock = new Clock();
+  clock.start();
 
   setTimeout(() => {
-    expect(clock.value).toBe(3)
-  }, 3200)
-})
+    expect(clock.value).toBe(3);
+  }, 3200);
+});
 
-test('trigger twice then change the callback and trigger two more times', async () => {
-  const clock = new Clock
+test("trigger twice then change the callback and trigger two more times", async () => {
+  const clock = new Clock();
 
-  clock.start((value) => {
-    if (value === 2) {
-      expect(value).toBe(2)
-    }
-  }, clock.seconds(1), {
-    endValue: 5
-  })
+  clock.start(
+    (value) => {
+      if (value === 2) {
+        expect(value).toBe(2);
+      }
+    },
+    clock.seconds(1),
+    {
+      endValue: 5,
+    },
+  );
 
   clock.wait(() => {
     clock.setCallback((value) => {
       if (value === 4) {
-        expect(value).toBe(4)
+        expect(value).toBe(4);
       }
-    })
-  }, clock.seconds(2))
-})
+    });
+  }, clock.seconds(2));
+});
 
-test('value should start at 15 and go to 17', async () => {
-  const clock = new Clock
+test("value should start at 15 and go to 17", async () => {
+  const clock = new Clock();
 
-  clock.start((value) => {
-  }, clock.seconds(0.5), {
+  clock.start((value) => {}, clock.seconds(0.5), {
     startValue: 15,
     endValue: 17,
-  })
+  });
 
   setTimeout(() => {
-    expect(clock.value).toBe(15)
-  }, 500)
-})
+    expect(clock.value).toBe(15);
+  }, 500);
+});
 
-test('change the value interval, and pass the end value, but it still stops', async () => {
-  const clock = new Clock
+test("change the value interval, and pass the end value, but it still stops", async () => {
+  const clock = new Clock();
 
-  clock.start((value) => {
-  }, clock.seconds(0.5), {
+  clock.start((value) => {}, clock.seconds(0.5), {
     decrementing: true,
     valueInterval: 3,
     endValue: -10,
-  })
+  });
 
   setTimeout(() => {
-    expect(clock.value).toBe(-12)
-  }, 5000)
-})
+    expect(clock.value).toBe(-12);
+  }, 5000);
+});
 
-test('change the value interval, and pass the end value, but it still stops, and clamp at the set endvalue', async () => {
-  const clock = new Clock
+test("change the value interval, and pass the end value, but it still stops, and clamp at the set endvalue", async () => {
+  const clock = new Clock();
 
-  clock.start((value) => {
-  }, clock.seconds(0.5), {
+  clock.start((value) => {}, clock.seconds(0.5), {
     decrementing: true,
     valueInterval: 3,
     endValue: -10,
     clampEndValue: true,
-  })
+  });
 
   setTimeout(() => {
-    expect(clock.value).toBe(-10)
-  }, 5000)
-})
+    expect(clock.value).toBe(-10);
+  }, 5000);
+});
 
-test('checking clock state values [ isRunning, isPaused, etc... ]', async () => {
-  const clock = new Clock
+test("checking clock state values [ isRunning, isPaused, etc... ]", async () => {
+  const clock = new Clock();
 
-  expect(clock.isStopped).toBe(true)
-  expect(clock.isRunning).toBe(false)
-  expect(clock.isPaused).toBe(false)
+  expect(clock.isStopped).toBe(true);
+  expect(clock.isRunning).toBe(false);
+  expect(clock.isPaused).toBe(false);
 
-  clock.start(() => {
-  }, clock.seconds(1))
+  clock.start(() => {}, clock.seconds(1));
 
-  expect(clock.isStopped).toBe(false)
-  expect(clock.isRunning).toBe(true)
-  expect(clock.isPaused).toBe(false)
-
-  setTimeout(() => {
-    clock.pause()
-
-    expect(clock.isStopped).toBe(false)
-    expect(clock.isRunning).toBe(false)
-    expect(clock.isPaused).toBe(true)
-  }, 2000)
+  expect(clock.isStopped).toBe(false);
+  expect(clock.isRunning).toBe(true);
+  expect(clock.isPaused).toBe(false);
 
   setTimeout(() => {
-    clock.resume()
+    clock.pause();
 
-    expect(clock.isStopped).toBe(false)
-    expect(clock.isRunning).toBe(true)
-    expect(clock.isPaused).toBe(false)
-  }, 3000)
+    expect(clock.isStopped).toBe(false);
+    expect(clock.isRunning).toBe(false);
+    expect(clock.isPaused).toBe(true);
+  }, 2000);
 
   setTimeout(() => {
-    clock.stop()
+    clock.resume();
 
-    expect(clock.isStopped).toBe(true)
-    expect(clock.isRunning).toBe(false)
-    expect(clock.isPaused).toBe(false)
-  }, 4000)
-})
+    expect(clock.isStopped).toBe(false);
+    expect(clock.isRunning).toBe(true);
+    expect(clock.isPaused).toBe(false);
+  }, 3000);
 
+  setTimeout(() => {
+    clock.stop();
 
-test('Skip intial callback works', async () => {
-  const clock = new Clock
+    expect(clock.isStopped).toBe(true);
+    expect(clock.isRunning).toBe(false);
+    expect(clock.isPaused).toBe(false);
+  }, 4000);
+});
 
-  clock.start((value) => {
-    clock.setValue(5)
-  }, clock.seconds(1), {
-    skipInitialCallback: true,
-    endValue: 2
-  })
+test("Skip intial callback works", async () => {
+  const clock = new Clock();
 
-  expect(clock.value).toBe(0)
+  clock.start(
+    (value) => {
+      clock.setValue(5);
+    },
+    clock.seconds(1),
+    {
+      skipInitialCallback: true,
+      endValue: 2,
+    },
+  );
 
-  clock.wait(() => {
-    expect(clock.value).toBe(5)
-  }, clock.seconds(2))
-})
-
-
-test('NOT Skip intial callback works', async () => {
-  const clock = new Clock
-
-  clock.start((value) => {
-    clock.setValue(5)
-  }, clock.seconds(1), {
-    skipInitialCallback: false,
-    endValue: 2
-  })
-
-  expect(clock.value).toBe(6)
+  expect(clock.value).toBe(0);
 
   clock.wait(() => {
-    expect(clock.value).toBe(6)
-  }, clock.seconds(2))
-})
+    expect(clock.value).toBe(5);
+  }, clock.seconds(2));
+});
 
+test("NOT Skip intial callback works", async () => {
+  const clock = new Clock();
 
-test('Increment before initial callback set to true', async () => {
-  const clock = new Clock
-  let first = true
+  clock.start(
+    (value) => {
+      clock.setValue(5);
+    },
+    clock.seconds(1),
+    {
+      skipInitialCallback: false,
+      endValue: 2,
+    },
+  );
 
-  clock.start((value) => {
-    if (first) {
-      expect(clock.value).toBe(1)
-    } else {
-      expect(clock.value).toBe(6)
-    }
-    first = false
-    clock.setValue(5)
-    expect(clock.value).toBe(5)
-  }, clock.seconds(1), {
-    skipInitialCallback: false,
-    incrementBeforeInitialCallback: true,
-    endValue: 2
-  })
-  
-  expect(clock.value).toBe(6)
-  
+  expect(clock.value).toBe(6);
+
   clock.wait(() => {
-    expect(clock.value).toBe(6)
-  }, clock.seconds(2))
-})
+    expect(clock.value).toBe(6);
+  }, clock.seconds(2));
+});
 
+test("Increment before initial callback set to true", async () => {
+  const clock = new Clock();
+  let first = true;
 
-test('Increment before callbacks set to true', async () => {
-  const clock = new Clock
-  let first = true
+  clock.start(
+    (value) => {
+      if (first) {
+        expect(clock.value).toBe(1);
+      } else {
+        expect(clock.value).toBe(6);
+      }
+      first = false;
+      clock.setValue(5);
+      expect(clock.value).toBe(5);
+    },
+    clock.seconds(1),
+    {
+      skipInitialCallback: false,
+      incrementBeforeInitialCallback: true,
+      endValue: 2,
+    },
+  );
 
-  clock.start((value) => {
-    if (first) {
-      expect(clock.value).toBe(1)
-    } else {
-      expect(clock.value).toBe(6)
-    }
-    first = false
-    clock.setValue(5)
-    expect(clock.value).toBe(5)
-  }, clock.seconds(1), {
-    skipInitialCallback: false,
-    incrementBeforeCallbacks: true,
-    endValue: 2
-  })
-  
-  expect(clock.value).toBe(5)
-  
+  expect(clock.value).toBe(6);
+
   clock.wait(() => {
-    expect(clock.value).toBe(5)
-  }, clock.seconds(2))
-})
+    expect(clock.value).toBe(6);
+  }, clock.seconds(2));
+});
+
+test("Increment before callbacks set to true", async () => {
+  const clock = new Clock();
+  let first = true;
+
+  clock.start(
+    (value) => {
+      if (first) {
+        expect(clock.value).toBe(1);
+      } else {
+        expect(clock.value).toBe(6);
+      }
+      first = false;
+      clock.setValue(5);
+      expect(clock.value).toBe(5);
+    },
+    clock.seconds(1),
+    {
+      skipInitialCallback: false,
+      incrementBeforeCallbacks: true,
+      endValue: 2,
+    },
+  );
+
+  expect(clock.value).toBe(5);
+
+  clock.wait(() => {
+    expect(clock.value).toBe(5);
+  }, clock.seconds(2));
+});
